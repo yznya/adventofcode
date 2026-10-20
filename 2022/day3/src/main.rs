@@ -6,9 +6,9 @@ fn main() {
 
     let mut score = 0;
     for rucksack in &rucksacks {
-        let rucksack_items_len = rucksack.chars().count() / 2;
-        let first_compartment: HashSet<_> = rucksack[0..rucksack_items_len].chars().collect();
-        let second_compartment: HashSet<_> = rucksack[rucksack_items_len..].chars().collect();
+        let rucksack_items_len = rucksack.len() / 2;
+        let first_compartment: HashSet<_> = rucksack[0..rucksack_items_len].bytes().collect();
+        let second_compartment: HashSet<_> = rucksack[rucksack_items_len..].bytes().collect();
 
         let &misplaced_item = first_compartment
             .intersection(&second_compartment)
@@ -26,17 +26,14 @@ fn main() {
 
     score = 0;
     for rucksack_group in &mut rucksacks.chunks(3) {
-        let mut sets = rucksack_group
+        let &badge = rucksack_group
             .iter()
-            .map(|rucksack| rucksack.chars().collect::<HashSet<_>>());
-
-        let (first_set, second_set, third_set) = (
-            sets.next().unwrap(),
-            sets.next().unwrap(),
-            sets.next().unwrap(),
-        );
-        let t = first_set.intersection(&second_set);
-        let &badge = t.into_iter().find(|c| third_set.contains(c)).unwrap();
+            .map(|rucksack| rucksack.bytes().collect::<HashSet<_>>())
+            .reduce(|a, b| a.intersection(&b).copied().collect())
+            .unwrap()
+            .iter()
+            .next()
+            .unwrap();
 
         if badge.is_ascii_lowercase() {
             score += badge as i32 - 'a' as i32 + 1;
